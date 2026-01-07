@@ -1,32 +1,1218 @@
 <!DOCTYPE html>
-<html lang="en">
-    <head>
-        <meta charset="UTF-8" />
-        <link rel="stylesheet" href="styles.css" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>PakePlus App</title>
-        <script type="module" src="/main.js" defer></script>
-    </head>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>多油品损耗计算系统</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 15px;
+        }
+        
+        .main-container {
+            max-width: 1600px;
+            margin: 0 auto;
+            background-color: #f8f9fa;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+        }
+        
+        header {
+            background: linear-gradient(135deg, #2c3e50, #4a6491);
+            color: white;
+            padding: 25px 30px;
+            text-align: center;
+        }
+        
+        header h1 {
+            font-size: 2rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+        }
+        
+        header p {
+            opacity: 0.9;
+            font-size: 1rem;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .toolbar {
+            background-color: white;
+            padding: 15px 30px;
+            border-bottom: 2px solid #e9ecef;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        
+        .toolbar-left {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+        
+        .toolbar-right {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .btn-primary {
+            background-color: #4a6491;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background-color: #3a5479;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(74, 100, 145, 0.3);
+        }
+        
+        .btn-success {
+            background-color: #28a745;
+            color: white;
+        }
+        
+        .btn-success:hover {
+            background-color: #218838;
+        }
+        
+        .btn-danger {
+            background-color: #dc3545;
+            color: white;
+        }
+        
+        .btn-danger:hover {
+            background-color: #c82333;
+        }
+        
+        .btn-outline {
+            background-color: transparent;
+            color: #4a6491;
+            border: 2px solid #4a6491;
+        }
+        
+        .btn-outline:hover {
+            background-color: #4a6491;
+            color: white;
+        }
+        
+        .content-area {
+            padding: 30px;
+        }
+        
+        .oil-cards-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+            gap: 25px;
+        }
+        
+        .oil-card {
+            background-color: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            overflow: hidden;
+            transition: all 0.3s;
+            border: 2px solid transparent;
+        }
+        
+        .oil-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+        }
+        
+        .oil-card.calculating {
+            border-color: #ffc107;
+        }
+        
+        .oil-card.completed {
+            border-color: #28a745;
+        }
+        
+        .oil-card.error {
+            border-color: #dc3545;
+        }
+        
+        .card-header {
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #dee2e6;
+        }
+        
+        .card-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #2c3e50;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .card-title .product-badge {
+            background-color: #4a6491;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+        }
+        
+        .card-actions {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .icon-btn {
+            width: 32px;
+            height: 32px;
+            border: none;
+            border-radius: 6px;
+            background-color: #f8f9fa;
+            color: #6c757d;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .icon-btn:hover {
+            background-color: #e9ecef;
+            color: #495057;
+        }
+        
+        .icon-btn.delete:hover {
+            background-color: #f8d7da;
+            color: #dc3545;
+        }
+        
+        .card-body {
+            padding: 20px;
+        }
+        
+        .input-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .input-group {
+            margin-bottom: 15px;
+        }
+        
+        .input-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #495057;
+            font-size: 0.9rem;
+        }
+        
+        .input-wrapper {
+            position: relative;
+        }
+        
+        .input-wrapper input,
+        .input-wrapper select {
+            width: 100%;
+            padding: 10px 15px;
+            border: 2px solid #dee2e6;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            transition: all 0.3s;
+            background-color: white;
+        }
+        
+        .input-wrapper input:focus,
+        .input-wrapper select:focus {
+            outline: none;
+            border-color: #4a6491;
+            box-shadow: 0 0 0 3px rgba(74, 100, 145, 0.1);
+        }
+        
+        .input-unit {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #6c757d;
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+        
+        .input-hint {
+            font-size: 0.8rem;
+            color: #6c757d;
+            margin-top: 3px;
+            font-style: italic;
+        }
+        
+        .toggle-section {
+            margin: 15px 0;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+        }
+        
+        .toggle-switch {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 24px;
+        }
+        
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 24px;
+        }
+        
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        
+        input:checked + .slider {
+            background-color: #4a6491;
+        }
+        
+        input:checked + .slider:before {
+            transform: translateX(26px);
+        }
+        
+        .result-section {
+            margin-top: 20px;
+            padding: 15px;
+            background: linear-gradient(135deg, #e7f3ff, #f0f8ff);
+            border-radius: 8px;
+            border-left: 4px solid #4a6491;
+        }
+        
+        .result-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        
+        .result-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 5px 0;
+        }
+        
+        .result-label {
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+        
+        .result-value {
+            font-weight: 600;
+            color: #2c3e50;
+        }
+        
+        .loss-rate-display {
+            text-align: center;
+            margin: 15px 0;
+            padding: 15px;
+            background-color: white;
+            border-radius: 8px;
+        }
+        
+        .loss-rate-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #2c3e50;
+        }
+        
+        .loss-status {
+            text-align: center;
+            padding: 10px;
+            border-radius: 6px;
+            font-weight: 600;
+            margin-top: 10px;
+        }
+        
+        .status-normal {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        
+        .status-warning {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+        
+        .status-danger {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #6c757d;
+        }
+        
+        .empty-state i {
+            font-size: 4rem;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+        
+        .empty-state h3 {
+            font-size: 1.5rem;
+            margin-bottom: 10px;
+        }
+        
+        .empty-state p {
+            font-size: 1rem;
+            margin-bottom: 20px;
+        }
+        
+        /* 模态对话框样式 */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            animation: fadeIn 0.3s;
+        }
+        
+        .modal.show {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .modal-content {
+            background-color: white;
+            border-radius: 15px;
+            padding: 30px;
+            max-width: 500px;
+            width: 90%;
+            animation: slideIn 0.3s;
+        }
+        
+        .modal-header {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+        
+        .modal-header h2 {
+            color: #2c3e50;
+            font-size: 1.5rem;
+            margin-bottom: 10px;
+        }
+        
+        .modal-header p {
+            color: #6c757d;
+            font-size: 0.95rem;
+        }
+        
+        .oil-type-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+        
+        .oil-type-card {
+            border: 2px solid #dee2e6;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            background-color: #f8f9fa;
+        }
+        
+        .oil-type-card:hover {
+            border-color: #4a6491;
+            background-color: #e7f3ff;
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(74, 100, 145, 0.2);
+        }
+        
+        .oil-type-card.selected {
+            border-color: #4a6491;
+            background-color: #4a6491;
+            color: white;
+        }
+        
+        .oil-type-card i {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            color: #4a6491;
+        }
+        
+        .oil-type-card.selected i {
+            color: white;
+        }
+        
+        .oil-type-card h3 {
+            font-size: 1.1rem;
+            margin-bottom: 5px;
+        }
+        
+        .oil-type-card p {
+            font-size: 0.85rem;
+            opacity: 0.8;
+        }
+        
+        .modal-footer {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        @keyframes slideIn {
+            from {
+                transform: translateY(-50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .oil-cards-container {
+                grid-template-columns: 1fr;
+            }
+            
+            .input-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .result-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .toolbar {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .toolbar-left,
+            .toolbar-right {
+                justify-content: center;
+            }
+            
+            .oil-type-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="main-container">
+        <header>
+            <h1> 卸油计算工具</h1>
+            <!-- <p>同时计算多个油品的卸油损耗，支持独立计算和实时显示结果</p> -->
+        </header>
+        
+        <div class="toolbar">
+            <div class="toolbar-left">
+                <span style="font-weight: 600; color: #495057;">
+                    <i class="fas fa-layer-group"></i> 油品记录：<span id="oilCount">0</span> 个
+                </span>
+                <!-- <span style="color: #6c757d;">
+                    <i class="fas fa-clock"></i> 最后更新：<span id="lastUpdate">--</span>
+                </span> -->
+            </div>
+            <div class="toolbar-right">
+                <button class="btn btn-success" onclick="showOilTypeModal()">
+                    <i class="fas fa-plus"></i> 添加油品
+                </button>
+                <button class="btn btn-danger" onclick="clearAll()">
+                    <i class="fas fa-trash"></i> 清空全部
+                </button>
+            </div>
+        </div>
+        
+        <div class="content-area">
+            <div id="oilCardsContainer" class="oil-cards-container">
+                <!-- 油品卡片将动态添加到这里 -->
+            </div>
+            
+            <!-- <div id="emptyState" class="empty-state">
+                <i class="fas fa-gas-pump"></i>
+                <h3>暂无油品记录</h3>
+                <p>点击"添加油品"按钮开始计算多个油品的损耗</p>
+                <button class="btn btn-primary" onclick="showOilTypeModal()">
+                    <i class="fas fa-plus"></i> 添加第一个油品
+                </button>
+            </div> -->
+        </div>
+    </div>
+    
+    <!-- 油品类型选择模态框 -->
+    <div id="oilTypeModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2><i class="fas fa-gas-pump"></i> 选择油品类型</h2>
+                <p>请选择要添加的油品类型</p>
+            </div>
+            <div class="oil-type-grid">
+                <div class="oil-type-card" onclick="selectOilType('gasoline92', this)">
+                    <i class="fas fa-gas-pump"></i>
+                    <h3>92#汽油</h3>
+                    <!-- <p>标准汽油</p> -->
+                </div>
+                <div class="oil-type-card" onclick="selectOilType('gasoline95', this)">
+                    <i class="fas fa-gas-pump"></i>
+                    <h3>95#汽油</h3>
+                    <!-- <p>高标号汽油</p> -->
+                </div>
+                <div class="oil-type-card" onclick="selectOilType('gasoline98', this)">
+                    <i class="fas fa-gas-pump"></i>
+                    <h3>98#汽油</h3>
+                    <!-- <p> 爱跑98汽油</p> -->
+                </div>
+                <div class="oil-type-card" onclick="selectOilType('diesel', this)">
+                    <i class="fas fa-gas-pump"></i>
+                    <h3>柴油</h3>
+                    <!-- <p>标准柴油</p> -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" onclick="closeOilTypeModal()">
+                    <i class="fas fa-times"></i> 取消
+                </button>
+                <button class="btn btn-primary" onclick="confirmOilType()" id="confirmBtn" disabled>
+                    <i class="fas fa-check"></i> 确认添加
+                </button>
+            </div>
+        </div>
+    </div>
 
-    <body>
-        <main class="container">
-            <h1>Welcome to PakePlus</h1>
-            <form class="row" id="greet-form">
-                <input id="inputValue" placeholder="Enter a something..." />
-            </form>
-            <div class="resultBox">
-                <span>result: </span>
-                <span id="result"></span>
-            </div>
-            <div class="invokeBox">
-                <button id="openUrl">open_url_browser</button>
-                <button id="openUrlNew">open_url_new</button>
-                <button id="runCommand">run_command</button>
-                <button id="downloadFile">download_file</button>
-                <button id="getExeDir">get_exe_dir</button>
-                <button id="getEnvVar">get_env_var</button>
-                <button id="findPort">find_port</button>
-            </div>
-        </main>
-    </body>
+    <script>
+        // 全局变量
+        let oilCards = [];
+        let cardIdCounter = 0;
+        let selectedOilType = null;
+        const STANDARD_TEMP = 20;
+        const STANDARD_LOSS_RATE = 3; // 3‰
+        
+        // 防抖函数
+        function debounce(func, wait) {
+            let timeout;
+            return function executedFunction(...args) {
+                const later = () => {
+                    clearTimeout(timeout);
+                    func(...args);
+                };
+                clearTimeout(timeout);
+                timeout = setTimeout(later, wait);
+            };
+        }
+        
+        // 油品类型配置
+        const oilTypes = {
+            'gasoline92': {
+                name: '92#汽油',
+                type: 'gasoline',
+                alpha: 0.00119999,
+                badgeColor: '#28a745',
+                icon: 'fa-gas-pump'
+            },
+            'gasoline95': {
+                name: '95#汽油',
+                type: 'gasoline',
+                alpha: 0.00119999,
+                badgeColor: '#17a2b8',
+                icon: 'fa-gas-pump'
+            },
+            'gasoline98': {
+                name: '98#汽油',
+                type: 'gasoline',
+                alpha: 0.00119999,
+                badgeColor: '#6f42c1',
+                icon: 'fa-gas-pump'
+            },
+            'diesel': {
+                name: '柴油',
+                type: 'diesel',
+                alpha: 0.0008,
+                badgeColor: '#ffc107',
+                icon: 'fa-gas-pump'
+            }
+        };
+        
+        // 显示油品类型选择模态框
+        function showOilTypeModal() {
+            document.getElementById('oilTypeModal').classList.add('show');
+            selectedOilType = null;
+            document.getElementById('confirmBtn').disabled = true;
+            
+            // 清除选中状态
+            document.querySelectorAll('.oil-type-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+        }
+        
+        // 关闭油品类型选择模态框
+        function closeOilTypeModal() {
+            document.getElementById('oilTypeModal').classList.remove('show');
+        }
+        
+        // 选择油品类型
+        function selectOilType(type, element) {
+            selectedOilType = type;
+            document.getElementById('confirmBtn').disabled = false;
+            
+            // 更新选中状态
+            document.querySelectorAll('.oil-type-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            element.classList.add('selected');
+        }
+        
+        // 确认添加油品
+        function confirmOilType() {
+            if (!selectedOilType) return;
+            
+            closeOilTypeModal();
+            addOilCard(selectedOilType);
+        }
+        
+        // 添加油品卡片
+        function addOilCard(oilTypeKey) {
+            const cardId = ++cardIdCounter;
+            const oilType = oilTypes[oilTypeKey];
+            
+            const card = {
+                id: cardId,
+                oilTypeKey: oilTypeKey,
+                data: {
+                    productName: oilType.name,
+                    supplyVolume: '',
+                    supplyTemp: '',
+                    beforeVolume: '',
+                    beforeTemp: '',
+                    afterVolume: '',
+                    afterTemp: '',
+                    enablePumpedOil: false,
+                    pumpedVolume: '',
+                    productType: oilType.type,
+                    customCoefficient: ''
+                },
+                result: null
+            };
+            
+            oilCards.push(card);
+            renderOilCard(card);
+            updateUI();
+        }
+        
+        // 渲染油品卡片
+        function renderOilCard(card) {
+            const container = document.getElementById('oilCardsContainer');
+            const oilType = oilTypes[card.oilTypeKey];
+            const cardElement = document.createElement('div');
+            cardElement.className = 'oil-card';
+            cardElement.id = `oil-card-${card.id}`;
+            
+            cardElement.innerHTML = `
+                <div class="card-header">
+                    <div class="card-title">
+                        <i class="fas ${oilType.icon}"></i>
+                        ${oilType.name}
+                        <span class="product-badge" id="product-badge-${card.id}" style="background-color: ${oilType.badgeColor};">${oilType.name}</span>
+                    </div>
+                    <div class="card-actions">
+                        <button class="icon-btn" onclick="duplicateCard(${card.id})" title="复制">
+                            <i class="fas fa-copy"></i>
+                        </button>
+                        <button class="icon-btn delete" onclick="removeCard(${card.id})" title="删除">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="input-grid">
+                        <div class="input-group">
+                            <label>进货体积</label>
+                            <div class="input-wrapper">
+                                <input type="number" id="supplyVolume-${card.id}" placeholder="例如：10000" min="0" step="any">
+                                <span class="input-unit">升</span>
+                            </div>
+                        </div>
+                        <div class="input-group">
+                            <label>进货温度</label>
+                            <div class="input-wrapper">
+                                <input type="number" id="supplyTemp-${card.id}" placeholder="例如：25" step="any">
+                                <span class="input-unit">℃</span>
+                            </div>
+                        </div>
+                        <div class="input-group">
+                            <label>卸油前存量</label>
+                            <div class="input-wrapper">
+                                <input type="number" id="beforeVolume-${card.id}" placeholder="例如：5000" min="0" step="any">
+                                <span class="input-unit">升</span>
+                            </div>
+                        </div>
+                        <div class="input-group">
+                            <label>卸油前油温</label>
+                            <div class="input-wrapper">
+                                <input type="number" id="beforeTemp-${card.id}" placeholder="例如：20" step="any">
+                                <span class="input-unit">℃</span>
+                            </div>
+                        </div>
+                        <div class="input-group">
+                            <label>卸油后存量</label>
+                            <div class="input-wrapper">
+                                <input type="number" id="afterVolume-${card.id}" placeholder="例如：14850" min="0" step="any">
+                                <span class="input-unit">升</span>
+                            </div>
+                        </div>
+                        <div class="input-group">
+                            <label>卸油后油温</label>
+                            <div class="input-wrapper">
+                                <input type="number" id="afterTemp-${card.id}" placeholder="例如：22" step="any">
+                                <span class="input-unit">℃</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="toggle-section">
+                        <div class="toggle-switch">
+                            <label class="switch">
+                                <input type="checkbox" id="enablePumpedOil-${card.id}" onchange="togglePumpedOil(${card.id})">
+                                <span class="slider"></span>
+                            </label>
+                            <span>包含卸油期间加油量计算</span>
+                        </div>
+                        <div id="pumpedSection-${card.id}" style="display: none;">
+                            <div class="input-group">
+                                <label>加油体积</label>
+                                <div class="input-wrapper">
+                                    <input type="number" id="pumpedVolume-${card.id}" placeholder="例如：150" min="0" step="any">
+                                    <span class="input-unit">升</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="input-group">
+                        <label>油品类型</label>
+                        <select id="productType-${card.id}" onchange="updateProductType(${card.id})">
+                            <option value="gasoline">汽油（膨胀系数：0.00119999/℃）</option>
+                            <option value="diesel">柴油（膨胀系数：0.0008/℃）</option>
+                            <option value="custom">自定义膨胀系数</option>
+                        </select>
+                    </div>
+                    
+                    <div class="input-group" id="customCoeffGroup-${card.id}" style="display: none;">
+                        <label>自定义膨胀系数</label>
+                        <div class="input-wrapper">
+                            <input type="number" id="customCoefficient-${card.id}" placeholder="例如：0.00119999" step="0.00001" min="0" max="0.01">
+                            <span class="input-unit">1/℃</span>
+                        </div>
+                    </div>
+                    
+                    <div style="display: flex; gap: 10px; margin-top: 15px;">
+                        <button class="btn btn-outline" style="flex: 1;" onclick="resetCard(${card.id})">
+                            <i class="fas fa-redo"></i> 重置
+                        </button>
+                    </div>
+                    
+                    <div id="resultSection-${card.id}" class="result-section" style="display: none;">
+                        <div class="loss-rate-display">
+                            <div style="font-size: 0.9rem; color: #6c757d; margin-bottom: 5px;">损耗率</div>
+                            <div class="loss-rate-value" id="lossRate-${card.id}">--<span class="permille-symbol">‰</span></div>
+                        </div>
+                        <div class="result-grid">
+                            <div class="result-item">
+                                <span class="result-label">进货体积(20℃)：</span>
+                                <span class="result-value" id="supply20-${card.id}">-- 升</span>
+                            </div>
+                            <div class="result-item">
+                                <span class="result-label">净进货量(20℃)：</span>
+                                <span class="result-value" id="netSupply20-${card.id}">-- 升</span>
+                            </div>
+                            <div class="result-item">
+                                <span class="result-label">实际损耗(20℃)：</span>
+                                <span class="result-value" id="actualLoss20-${card.id}">-- 升</span>
+                            </div>
+                            <div class="result-item">
+                                <span class="result-label">允许损耗(3‰)：</span>
+                                <span class="result-value" id="allowedLoss20-${card.id}">-- 升</span>
+                            </div>
+                        </div>
+                        <div class="loss-status" id="lossStatus-${card.id}">
+                            等待计算...
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            container.appendChild(cardElement);
+            
+            // 设置默认值
+            document.getElementById(`productType-${card.id}`).value = oilType.type;
+            
+            // 添加输入事件监听器 - 使用防抖实现自动计算
+            const debouncedCalculate = debounce(() => {
+                calculateCard(card.id);
+            }, 500);
+            
+            const inputs = cardElement.querySelectorAll('input, select');
+            inputs.forEach(input => {
+                input.addEventListener('input', () => {
+                    updateCardData(card.id);
+                    debouncedCalculate();
+                });
+                input.addEventListener('change', () => {
+                    updateCardData(card.id);
+                    calculateCard(card.id);
+                });
+            });
+        }
+        
+        // 切换加油量显示
+        function togglePumpedOil(cardId) {
+            const checkbox = document.getElementById(`enablePumpedOil-${cardId}`);
+            const section = document.getElementById(`pumpedSection-${cardId}`);
+            section.style.display = checkbox.checked ? 'block' : 'none';
+            
+            // 触发重新计算
+            updateCardData(cardId);
+            calculateCard(cardId);
+        }
+        
+        // 更新产品类型
+        function updateProductType(cardId) {
+            const productType = document.getElementById(`productType-${cardId}`).value;
+            const customGroup = document.getElementById(`customCoeffGroup-${cardId}`);
+            customGroup.style.display = productType === 'custom' ? 'block' : 'none';
+            
+            // 更新徽章
+            const badge = document.getElementById(`product-badge-${cardId}`);
+            if (productType === 'gasoline') {
+                badge.textContent = '汽油';
+                badge.style.backgroundColor = '#28a745';
+            } else if (productType === 'diesel') {
+                badge.textContent = '柴油';
+                badge.style.backgroundColor = '#ffc107';
+            } else {
+                badge.textContent = '自定义';
+                badge.style.backgroundColor = '#6c757d';
+            }
+            
+            // 触发重新计算
+            updateCardData(cardId);
+            calculateCard(cardId);
+        }
+        
+        // 更新卡片数据
+        function updateCardData(cardId) {
+            const card = oilCards.find(c => c.id === cardId);
+            if (!card) return;
+            
+            card.data = {
+                productName: document.getElementById(`productType-${cardId}`).value,
+                supplyVolume: document.getElementById(`supplyVolume-${cardId}`).value,
+                supplyTemp: document.getElementById(`supplyTemp-${cardId}`).value,
+                beforeVolume: document.getElementById(`beforeVolume-${cardId}`).value,
+                beforeTemp: document.getElementById(`beforeTemp-${cardId}`).value,
+                afterVolume: document.getElementById(`afterVolume-${cardId}`).value,
+                afterTemp: document.getElementById(`afterTemp-${cardId}`).value,
+                enablePumpedOil: document.getElementById(`enablePumpedOil-${cardId}`).checked,
+                pumpedVolume: document.getElementById(`pumpedVolume-${cardId}`).value,
+                productType: document.getElementById(`productType-${cardId}`).value,
+                customCoefficient: document.getElementById(`customCoefficient-${cardId}`).value
+            };
+        }
+        
+        // 计算单个卡片
+        function calculateCard(cardId) {
+            const card = oilCards.find(c => c.id === cardId);
+            if (!card) return;
+            
+            updateCardData(cardId);
+            
+            const cardElement = document.getElementById(`oil-card-${cardId}`);
+            
+            // 获取数据
+            const supplyVolume = parseFloat(card.data.supplyVolume);
+            const supplyTemp = parseFloat(card.data.supplyTemp);
+            const beforeVolume = parseFloat(card.data.beforeVolume);
+            const beforeTemp = parseFloat(card.data.beforeTemp);
+            const afterVolume = parseFloat(card.data.afterVolume);
+            const afterTemp = parseFloat(card.data.afterTemp);
+            const pumpedVolume = card.data.enablePumpedOil ? parseFloat(card.data.pumpedVolume) || 0 : 0;
+            
+            // 验证输入
+            if (isNaN(supplyVolume) || isNaN(supplyTemp) || isNaN(beforeVolume) || 
+                isNaN(beforeTemp) || isNaN(afterVolume) || isNaN(afterTemp)) {
+                showCardResult(cardId, null, 'warning', '请输入完整的数据');
+                cardElement.className = 'oil-card';
+                return;
+            }
+            
+            // 获取膨胀系数
+            let alpha;
+            if (card.data.productType === 'custom') {
+                alpha = parseFloat(card.data.customCoefficient) || 0.00119999;
+            } else {
+                alpha = oilTypes[card.oilTypeKey].alpha;
+            }
+            
+            // 温度修正计算
+            const supplyVolume20 = correctTo20C(supplyVolume, supplyTemp, alpha);
+            const beforeVolume20 = correctTo20C(beforeVolume, beforeTemp, alpha);
+            const afterVolume20 = correctTo20C(afterVolume, afterTemp, alpha);
+            
+            let pumpedVolume20 = 0;
+            if (card.data.enablePumpedOil && pumpedVolume > 0) {
+                const pumpedTemp = (beforeTemp + afterTemp) / 2;
+                pumpedVolume20 = correctTo20C(pumpedVolume, pumpedTemp, alpha);
+            }
+            
+            const netSupply20 = supplyVolume20 - pumpedVolume20;
+            const theoreticalVolume20 = beforeVolume20 + netSupply20;
+            const actualLoss20 = theoreticalVolume20 - afterVolume20;
+            
+            let lossRate = 0;
+            if (netSupply20 > 0) {
+                lossRate = (actualLoss20 / netSupply20) * 1000; // 转换为千分比
+            }
+            
+            // 保存结果
+            card.result = {
+                supplyVolume20,
+                beforeVolume20,
+                afterVolume20,
+                pumpedVolume20,
+                netSupply20,
+                theoreticalVolume20,
+                actualLoss20,
+                lossRate,
+                alpha
+            };
+            
+            // 显示结果
+            let status, statusClass, statusText;
+            if (lossRate <= STANDARD_LOSS_RATE) {
+                status = 'normal';
+                statusClass = 'status-normal';
+                statusText = `损耗率 ${lossRate.toFixed(2)}‰ 符合标准（≤${STANDARD_LOSS_RATE}‰）`;
+            } else {
+                status = 'exceeded';
+                statusClass = 'status-danger';
+                statusText = `损耗率 ${lossRate.toFixed(2)}‰ 超出标准（＞${STANDARD_LOSS_RATE}‰）`;
+            }
+            
+            showCardResult(cardId, card.result, status, statusText);
+            cardElement.className = 'oil-card completed';
+        }
+        
+        // 显示卡片结果
+        function showCardResult(cardId, result, status, message) {
+            const resultSection = document.getElementById(`resultSection-${cardId}`);
+            resultSection.style.display = 'block';
+            
+            if (!result) {
+                document.getElementById(`lossRate-${cardId}`).innerHTML = '--<span class="permille-symbol">‰</span>';
+                document.getElementById(`lossStatus-${cardId}`).textContent = message;
+                document.getElementById(`lossStatus-${cardId}`).className = 'loss-status status-warning';
+                return;
+            }
+            
+            document.getElementById(`lossRate-${cardId}`).innerHTML = 
+                `${result.lossRate.toFixed(2)}<span class="permille-symbol">‰</span>`;
+            document.getElementById(`supply20-${cardId}`).textContent = `${result.supplyVolume20.toFixed(2)} 升`;
+            document.getElementById(`netSupply20-${cardId}`).textContent = `${result.netSupply20.toFixed(2)} 升`;
+            document.getElementById(`actualLoss20-${cardId}`).textContent = `${result.actualLoss20.toFixed(2)} 升`;
+            document.getElementById(`allowedLoss20-${cardId}`).textContent = `${(result.netSupply20 * 0.003).toFixed(2)} 升`;
+            
+            const statusElement = document.getElementById(`lossStatus-${cardId}`);
+            statusElement.textContent = message;
+            statusElement.className = `loss-status ${status === 'normal' ? 'status-normal' : 'status-danger'}`;
+        }
+        
+        // 重置卡片
+        function resetCard(cardId) {
+            const card = oilCards.find(c => c.id === cardId);
+            if (!card) return;
+            
+            // 清空输入
+            const cardElement = document.getElementById(`oil-card-${cardId}`);
+            const inputs = cardElement.querySelectorAll('input');
+            inputs.forEach(input => {
+                if (input.type === 'checkbox') {
+                    input.checked = false;
+                } else {
+                    input.value = '';
+                }
+            });
+            
+            // 隐藏结果
+            document.getElementById(`resultSection-${cardId}`).style.display = 'none';
+            document.getElementById(`pumpedSection-${cardId}`).style.display = 'none';
+            document.getElementById(`customCoeffGroup-${cardId}`).style.display = 'none';
+            
+            // 重置状态
+            card.result = null;
+            cardElement.className = 'oil-card';
+            
+            // 恢复默认值
+            const oilType = oilTypes[card.oilTypeKey];
+            document.getElementById(`productType-${cardId}`).value = oilType.type;
+            const badge = document.getElementById(`product-badge-${cardId}`);
+            badge.textContent = oilType.name;
+            badge.style.backgroundColor = oilType.badgeColor;
+        }
+        
+        // 复制卡片
+        function duplicateCard(cardId) {
+            const originalCard = oilCards.find(c => c.id === cardId);
+            if (!originalCard) return;
+            
+            addOilCard(originalCard.oilTypeKey);
+            const newCard = oilCards[oilCards.length - 1];
+            
+            // 复制数据
+            setTimeout(() => {
+                document.getElementById(`supplyVolume-${newCard.id}`).value = originalCard.data.supplyVolume;
+                document.getElementById(`supplyTemp-${newCard.id}`).value = originalCard.data.supplyTemp;
+                document.getElementById(`beforeVolume-${newCard.id}`).value = originalCard.data.beforeVolume;
+                document.getElementById(`beforeTemp-${newCard.id}`).value = originalCard.data.beforeTemp;
+                document.getElementById(`afterVolume-${newCard.id}`).value = originalCard.data.afterVolume;
+                document.getElementById(`afterTemp-${newCard.id}`).value = originalCard.data.afterTemp;
+                document.getElementById(`enablePumpedOil-${newCard.id}`).checked = originalCard.data.enablePumpedOil;
+                document.getElementById(`pumpedVolume-${newCard.id}`).value = originalCard.data.pumpedVolume;
+                document.getElementById(`productType-${newCard.id}`).value = originalCard.data.productType;
+                document.getElementById(`customCoefficient-${newCard.id}`).value = originalCard.data.customCoefficient;
+                
+                togglePumpedOil(newCard.id);
+                updateProductType(newCard.id);
+                updateCardData(newCard.id);
+                calculateCard(newCard.id);
+            }, 100);
+        }
+        
+        // 删除卡片
+        function removeCard(cardId) {
+            const index = oilCards.findIndex(c => c.id === cardId);
+            if (index === -1) return;
+            
+            oilCards.splice(index, 1);
+            const cardElement = document.getElementById(`oil-card-${cardId}`);
+            cardElement.remove();
+            
+            updateUI();
+        }
+        
+        // 清空全部
+        function clearAll() {
+            if (oilCards.length === 0) return;
+            
+            if (confirm('确定要清空所有油品记录吗？')) {
+                oilCards = [];
+                document.getElementById('oilCardsContainer').innerHTML = '';
+                updateUI();
+            }
+        }
+        
+        // 更新UI
+        function updateUI() {
+            document.getElementById('oilCount').textContent = oilCards.length;
+            document.getElementById('lastUpdate').textContent = new Date().toLocaleTimeString();
+            
+            // 显示/隐藏空状态
+            document.getElementById('emptyState').style.display = oilCards.length === 0 ? 'block' : 'none';
+            document.getElementById('oilCardsContainer').style.display = oilCards.length === 0 ? 'none' : 'grid';
+        }
+        
+        // 温度修正计算
+        function correctTo20C(volume, temperature, alpha) {
+            if (isNaN(volume) || isNaN(temperature)) return null;
+            return volume * (1 - alpha * (temperature - STANDARD_TEMP));
+        }
+        
+        // 页面初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            updateUI();
+        });
+        
+        // 点击模态框外部关闭
+        window.onclick = function(event) {
+            const modal = document.getElementById('oilTypeModal');
+            if (event.target === modal) {
+                closeOilTypeModal();
+            }
+        }
+    </script>
+</body>
 </html>
